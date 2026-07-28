@@ -35,6 +35,40 @@ genotype columns. For leakage-controlled cross-validation, prefer the
 fold-wise `--tassel-prior --lasso-prior` workflow instead of a prior built from
 the full phenotype matrix.
 
+The recommended long format contains one row per marker-trait pair:
+
+```csv
+marker,trait,score
+SNP_1,trait_1,3.25
+SNP_1,trait_2,1.40
+SNP_2,trait_1,0.75
+```
+
+The `marker` column must match a genotype marker column, and the `trait` column
+must match a selected phenotype column. `score` must be non-negative; larger
+values indicate stronger prior support.
+
+A wide trait-specific format is also accepted:
+
+```csv
+marker,trait_1,trait_2
+SNP_1,3.25,1.40
+SNP_2,0.75,2.10
+```
+
+For a prior shared by every selected trait, use a generic two-column table:
+
+```csv
+marker,score
+SNP_1,3.25
+SNP_2,0.75
+```
+
+The score column may instead be named `-log10p`, `logp`, `pvalue`, `p_value`,
+or `p`. Values in a `pvalue`, `p_value`, or `p` column are converted to
+`-log10(P)` during import. The synthetic
+`sample_data/prior_marker.csv` file demonstrates the recommended long format.
+
 ## Conversion utilities
 
 - `scripts/convert_plink_bed_to_csv.py` converts PLINK BED/BIM/FAM files.
