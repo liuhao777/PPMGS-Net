@@ -56,8 +56,9 @@ docs/
 
 ## Installation
 
-Install a PyTorch build compatible with the local CUDA driver, then install the
-remaining dependencies:
+Install a PyTorch build compatible with the local CUDA driver by following the
+official PyTorch installation instructions. Then install the remaining
+dependencies:
 
 ```bash
 python -m pip install --upgrade pip
@@ -97,7 +98,8 @@ ind002,,4.9
 ```
 
 See [docs/INPUT_FORMATS.md](docs/INPUT_FORMATS.md) for details and conversion
-utilities. The files in `sample_data/` are synthetic examples only.
+utilities. The files in `sample_data/` are synthetic examples only and are
+intended for format and interface checks, not biological analysis.
 
 ## Preparing genotype and phenotype files
 
@@ -172,6 +174,11 @@ compatible precomputed marker table can instead be supplied with
 `--prior-marker /path/to/snp_marker.csv`. To run the no-prior control, use
 `--attention-mode none` and `--trait-gate-mode none`.
 
+The repository includes `sample_data/prior_marker.csv` as a synthetic example
+of the long-format prior table. See
+[docs/INPUT_FORMATS.md](docs/INPUT_FORMATS.md) for the supported long, wide,
+and generic prior formats.
+
 ### Optional outputs
 
 - Add `--save-oof-intervals` with cross-validation to export individualized
@@ -183,8 +190,54 @@ compatible precomputed marker table can instead be supplied with
 
 ## Training examples
 
-The repository does not define a fixed random seed. Choose and pass a seed for
-each reproducible run.
+The command-line interface does not provide a default experiment seed. Choose
+and pass `--seed` for each reproducible run; deterministic component-specific
+offsets are applied internally.
+
+### Quick interface check
+
+After installing the dependencies, run a minimal no-prior analysis using the
+synthetic files:
+
+```bash
+python scripts/run_training_cli.py \
+  --genotype sample_data/genotype.csv \
+  --phenotype sample_data/phenotype.csv \
+  --out-dir results/quick_check \
+  --model-family ppmgs \
+  --task-type single_trait \
+  --trait-name height \
+  --attention-mode none \
+  --trait-gate-mode none \
+  --epochs 2 \
+  --cv --cv-folds 2 --cv-repeats 1 \
+  --seed <YOUR_SEED>
+```
+
+To check precomputed-prior parsing and directional multi-trait transfer without
+installing TASSEL, run:
+
+```bash
+python scripts/run_training_cli.py \
+  --genotype sample_data/genotype.csv \
+  --phenotype sample_data/phenotype.csv \
+  --prior-marker sample_data/prior_marker.csv \
+  --out-dir results/prior_interface_check \
+  --model-family ppmgs \
+  --task-type multi_trait \
+  --trait-names yield,height \
+  --allow-missing \
+  --attention-mode prior_marker_pearson \
+  --attention-blend-metric pearson_learned_alpha \
+  --trait-gate-mode directional_anchor \
+  --prior-sparsity none \
+  --epochs 2 \
+  --seed <YOUR_SEED>
+```
+
+The synthetic dataset is intentionally small. It verifies file parsing and the
+training interface, but it does not contain enough complete individuals to
+activate the reliability-filtered PDAE teacher.
 
 ### Single-trait prediction
 
